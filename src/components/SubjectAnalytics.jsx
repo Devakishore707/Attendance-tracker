@@ -9,6 +9,7 @@ export default function SubjectAnalytics({
   setAttendanceLog,
   timetable,
   setTimetable,
+  resetAllData,
 }) {
   const [newSubName, setNewSubName] = useState('');
   const [newSubCode, setNewSubCode] = useState('');
@@ -305,7 +306,20 @@ export default function SubjectAnalytics({
 
       {/* Subject Listing & Adding Management */}
       <div className="subject-manager-box">
-        <h3 className="manager-title">Manage Subjects</h3>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+          <h3 className="manager-title" style={{ margin: 0 }}>Manage Subjects</h3>
+          {resetAllData && (
+            <button 
+              type="button" 
+              className="btn-action" 
+              style={{ padding: '8px 16px', color: 'var(--color-danger)', borderColor: 'rgba(244, 63, 94, 0.2)', background: 'rgba(244, 63, 94, 0.03)', height: 'fit-content', flexDirection: 'row', gap: '6px' }}
+              onClick={resetAllData}
+            >
+              <Trash2 size={13} />
+              <span>Reset All Data</span>
+            </button>
+          )}
+        </div>
 
         <form onSubmit={handleAddSubject} className="subject-creator-form">
           <input

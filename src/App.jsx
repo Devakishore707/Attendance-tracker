@@ -5,6 +5,7 @@ import TimetableEditor from './components/TimetableEditor';
 import AttendanceCalendar from './components/AttendanceCalendar';
 import SubjectAnalytics from './components/SubjectAnalytics';
 import { getDayOrderForDate, formatDateClean, formatDateISO, getAttendanceStats, getOverallStats } from './utils/helpers';
+import { supabase } from './utils/supabase';
 import './App.css';
 
 // Initial Mock/Default Data
@@ -44,7 +45,11 @@ export default function App() {
   // Navigation
   const [currentTab, setCurrentTab] = useState('today');
 
-  // Core States (loaded from localStorage or using default data)
+  // Syncing state
+  const [syncStatus, setSyncStatus] = useState('loading'); // 'loading', 'synced', 'syncing', 'error'
+  const [isInitialLoadDone, setIsInitialLoadDone] = useState(false);
+
+  // Core States (initially fallback to localStorage or default mock data)
   const [subjects, setSubjects] = useState(() => {
     const local = localStorage.getItem('presenly_subjects');
     return local ? JSON.parse(local) : defaultSubjects;
@@ -84,7 +89,60 @@ export default function App() {
     return () => clearInterval(timer);
   }, []);
 
-  // Synchronize to localStorage
+  // 1. Initial Load from Supabase
+  useEffect(() => {
+    async function loadCloudData() {
+      if (!supabase) {
+        setSyncStatus('error');
+        setIsInitialLoadDone(true);
+        return;
+      }
+      setSyncStatus('loading');
+      try {
+        const { data, error } = await supabase
+          .from('attendance_data')
+          .select('payload')
+          .eq('data_key', 'presenly_data')
+          .maybeSingle();
+
+        if (error) throw error;
+
+        if (data && data.payload) {
+          const p = data.payload;
+          if (p.subjects) setSubjects(p.subjects);
+          if (p.slots) setSlots(p.slots);
+          if (p.timetable) setTimetable(p.timetable);
+          if (p.attendanceLog) setAttendanceLog(p.attendanceLog);
+          if (p.referenceDate) setReferenceDate(p.referenceDate);
+          if (p.referenceDayOrder) setReferenceDayOrder(p.referenceDayOrder);
+        } else {
+          // No cloud data yet, initialize it with current state
+          const initialPayload = {
+            subjects,
+            slots,
+            timetable,
+            attendanceLog,
+            referenceDate,
+            referenceDayOrder,
+          };
+          const { error: upsertError } = await supabase
+            .from('attendance_data')
+            .upsert({ data_key: 'presenly_data', payload: initialPayload });
+          
+          if (upsertError) throw upsertError;
+        }
+        setSyncStatus('synced');
+      } catch (err) {
+        console.error('Error connecting to Supabase:', err);
+        setSyncStatus('error');
+      } finally {
+        setIsInitialLoadDone(true);
+      }
+    }
+    loadCloudData();
+  }, []);
+
+  // 2. LocalStorage Syncing
   useEffect(() => {
     localStorage.setItem('presenly_subjects', JSON.stringify(subjects));
   }, [subjects]);
@@ -105,6 +163,74 @@ export default function App() {
     localStorage.setItem('presenly_refDate', referenceDate);
     localStorage.setItem('presenly_refDayOrder', String(referenceDayOrder));
   }, [referenceDate, referenceDayOrder]);
+
+  // 3. Debounced Supabase Syncing
+  useEffect(() => {
+    if (!isInitialLoadDone) return;
+
+    setSyncStatus('syncing');
+    const timer = setTimeout(async () => {
+      try {
+        if (!supabase) throw new Error('No Supabase connection');
+        const payload = {
+          subjects,
+          slots,
+          timetable,
+          attendanceLog,
+          referenceDate,
+          referenceDayOrder,
+        };
+        const { error } = await supabase
+          .from('attendance_data')
+          .upsert({ data_key: 'presenly_data', payload, updated_at: new Date().toISOString() });
+
+        if (error) throw error;
+        setSyncStatus('synced');
+      } catch (err) {
+        console.error('Cloud Sync failed:', err);
+        setSyncStatus('error');
+      }
+    }, 1500); // 1.5s debounce
+
+    return () => clearTimeout(timer);
+  }, [subjects, slots, timetable, attendanceLog, referenceDate, referenceDayOrder, isInitialLoadDone]);
+
+  // 4. Force Reset All Data
+  const resetAllData = async () => {
+    if (window.confirm('WARNING: This will permanently delete all attendance logs, custom timetables, and subjects from both local storage and the cloud. Are you sure you want to proceed?')) {
+      setSyncStatus('syncing');
+      localStorage.clear();
+      setSubjects(defaultSubjects);
+      setSlots(defaultSlots);
+      setTimetable(defaultTimetable);
+      setAttendanceLog({});
+      setReferenceDate('2026-06-22');
+      setReferenceDayOrder(1);
+
+      try {
+        if (supabase) {
+          const defaultPayload = {
+            subjects: defaultSubjects,
+            slots: defaultSlots,
+            timetable: defaultTimetable,
+            attendanceLog: {},
+            referenceDate: '2026-06-22',
+            referenceDayOrder: 1,
+          };
+          const { error } = await supabase
+            .from('attendance_data')
+            .upsert({ data_key: 'presenly_data', payload: defaultPayload });
+          if (error) throw error;
+        }
+        setSyncStatus('synced');
+        alert('All attendance records and configurations have been successfully reset.');
+      } catch (err) {
+        console.error('Failed to reset cloud database:', err);
+        setSyncStatus('error');
+        alert('Local data reset, but failed to sync reset to cloud.');
+      }
+    }
+  };
 
   // Determine current day order
   const todayISO = formatDateISO(currentDate);
@@ -166,9 +292,22 @@ export default function App() {
           </div>
 
           <div className="time-widget">
-            <div className="clock">
-              {currentDate.toLocaleTimeString('en-US', { hour12: true, hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '4px' }}>
+              <div className="clock">
+                {currentDate.toLocaleTimeString('en-US', { hour12: true, hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+              </div>
+              
+              <div className={`sync-badge ${syncStatus}`} title="Supabase Database Connection Status">
+                <span className="dot"></span>
+                <span>
+                  {syncStatus === 'synced' && 'Cloud Active'}
+                  {syncStatus === 'syncing' && 'Syncing...'}
+                  {syncStatus === 'loading' && 'Connecting...'}
+                  {syncStatus === 'error' && 'Local Mode'}
+                </span>
+              </div>
             </div>
+            
             <div className="date-info">
               {formatDateClean(currentDate)}
               {currentDayOrder ? ` • Day Order ${currentDayOrder}` : ' • Weekend'}
@@ -222,6 +361,7 @@ export default function App() {
             setAttendanceLog={setAttendanceLog}
             timetable={timetable}
             setTimetable={setTimetable}
+            resetAllData={resetAllData}
           />
         )}
       </main>
