@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Check, X, CalendarX, RotateCcw, Clock } from 'lucide-react';
-import { formatDateClean, formatDateISO, isTimeInSlot } from '../utils/helpers';
+import { formatDateClean, formatDateISO, isTimeInSlot, getParticularsForDate } from '../utils/helpers';
 
 export default function TodaySchedule({
   currentTime,
@@ -12,6 +12,7 @@ export default function TodaySchedule({
   subjects,
   attendanceLog,
   markAttendance,
+  academicCalendar,
 }) {
   const dateISO = formatDateISO(currentDate);
   const daySchedule = timetable[dayOrder] || {};
@@ -90,8 +91,11 @@ export default function TodaySchedule({
             <div className="card empty-state" style={{ height: '100%', justifyContent: 'center', minHeight: '300px' }}>
               <CalendarX size={48} strokeWidth={1.5} style={{ color: 'var(--color-primary)' }} />
               <div className="empty-state-title">Holiday / Day Off</div>
+              <div className="empty-state-text" style={{ fontSize: '15px', fontWeight: 600, color: 'var(--color-primary)', marginTop: '8px', marginBottom: '8px' }}>
+                {getParticularsForDate(dateISO, academicCalendar) || 'Semester Holiday / Off Day'}
+              </div>
               <div className="empty-state-text">
-                Today is marked as a holiday or weekend off. No Day Order is active. Enjoy your day!
+                No Day Order is assigned for today. Enjoy your day!
               </div>
             </div>
           ) : selectedSlot && selectedSubject ? (

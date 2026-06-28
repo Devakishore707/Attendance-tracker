@@ -20,7 +20,11 @@ export function isTimeInSlot(currentTimeStr, slotStartTime, slotEndTime) {
 export function getDayOrderForDate(targetDateStr, refDateStr = '2026-06-22', refDayOrder = 1, academicCalendar = null) {
   if (academicCalendar && Object.keys(academicCalendar).length > 0) {
     if (academicCalendar[targetDateStr] !== undefined) {
-      return academicCalendar[targetDateStr];
+      const val = academicCalendar[targetDateStr];
+      if (typeof val === 'object' && val !== null) {
+        return val.dayOrder;
+      }
+      return val;
     }
     const dates = Object.keys(academicCalendar).sort();
     if (dates.length > 0) {
@@ -189,3 +193,15 @@ export function getOverallStats(subjectsStats, targetPercent = 75) {
     status
   };
 }
+
+// Fetch any particulars or holiday reason for a date
+export function getParticularsForDate(targetDateStr, academicCalendar = null) {
+  if (academicCalendar && academicCalendar[targetDateStr] !== undefined) {
+    const val = academicCalendar[targetDateStr];
+    if (typeof val === 'object' && val !== null) {
+      return val.particulars || '';
+    }
+  }
+  return '';
+}
+

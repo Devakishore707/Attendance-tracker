@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { ChevronLeft, ChevronRight, Check, X, CalendarX, Info } from 'lucide-react';
-import { formatDateISO, getDayOrderForDate } from '../utils/helpers';
+import { formatDateISO, getDayOrderForDate, getParticularsForDate } from '../utils/helpers';
 
 export default function AttendanceCalendar({
   attendanceLog,
@@ -120,6 +120,7 @@ export default function AttendanceCalendar({
                     key={cell.dateStr}
                     className={`calendar-day-cell ${hasTodayBorder ? 'today-cell' : ''} ${isSelected ? 'selected-day' : ''}`}
                     onClick={() => setSelectedDateStr(cell.dateStr)}
+                    title={getParticularsForDate(cell.dateStr, academicCalendar) || (dayOrderNum ? `Day Order ${dayOrderNum}` : '')}
                   >
                     <span className="day-number">{cell.dayNum}</span>
                     
@@ -242,9 +243,11 @@ export default function AttendanceCalendar({
               ) : (
                 <div className="empty-state" style={{ padding: '20px 0' }}>
                   <CalendarX size={32} />
-                  <span className="empty-state-title">No Day Order set</span>
+                  <span className="empty-state-title" style={{ color: 'var(--color-primary)', marginTop: '8px', marginBottom: '8px' }}>
+                    {getParticularsForDate(selectedDateStr, academicCalendar) || 'Holiday / Day Off'}
+                  </span>
                   <span className="empty-state-text">
-                    This weekday has no Day Order. Go to Today's page to assign day orders.
+                    This day has no scheduled class Day Order. Enjoy your day!
                   </span>
                 </div>
               )}

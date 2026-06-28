@@ -326,7 +326,11 @@ export default function App() {
   const setTodayDayOrder = (d) => {
     setAcademicCalendar(prev => {
       const updated = { ...prev };
-      updated[todayISO] = d;
+      if (updated[todayISO] && typeof updated[todayISO] === 'object') {
+        updated[todayISO] = { ...updated[todayISO], dayOrder: d };
+      } else {
+        updated[todayISO] = { dayOrder: d, particulars: 'Manual Override' };
+      }
       return updated;
     });
   };
@@ -419,13 +423,14 @@ export default function App() {
           <TodaySchedule
             currentTime={currentDate}
             currentDate={currentDate}
-            dayOrder={currentDayOrder || 1} // defaults to Day 1 if weekend or null
+            dayOrder={currentDayOrder}
             setTodayDayOrder={setTodayDayOrder}
             slots={slots}
             timetable={timetable}
             subjects={subjects}
             attendanceLog={attendanceLog}
             markAttendance={markAttendance}
+            academicCalendar={academicCalendar}
           />
         )}
 
