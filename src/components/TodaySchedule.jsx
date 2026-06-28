@@ -68,6 +68,7 @@ export default function TodaySchedule({
   }, [currentTime, activeSlot, currentDate]);
 
   const isWeekend = currentDate.getDay() === 0 || currentDate.getDay() === 6;
+  const isHoliday = !dayOrder && !isWeekend;
 
   // Day Order easy selector values: 1 to 5
   const dayOrders = [1, 2, 3, 4, 5];
@@ -83,6 +84,14 @@ export default function TodaySchedule({
               <div className="empty-state-title">It's the Weekend!</div>
               <div className="empty-state-text">
                 No classes scheduled for today. Rest up, recharge, and review your stats page!
+              </div>
+            </div>
+          ) : isHoliday ? (
+            <div className="card empty-state" style={{ height: '100%', justifyContent: 'center', minHeight: '300px' }}>
+              <CalendarX size={48} strokeWidth={1.5} style={{ color: 'var(--color-primary)' }} />
+              <div className="empty-state-title">Holiday / Day Off</div>
+              <div className="empty-state-text">
+                Today is marked as a holiday or weekend off. No Day Order is active. Enjoy your day!
               </div>
             </div>
           ) : selectedSlot && selectedSubject ? (
@@ -158,7 +167,7 @@ export default function TodaySchedule({
           )}
 
           {/* Today's Timeline View */}
-          {!isWeekend && (
+          {!isWeekend && !isHoliday && (
             <div className="timeline-section">
               <h3 className="section-header">Today's Timeline</h3>
               <div className="timeline-list">
@@ -239,33 +248,35 @@ export default function TodaySchedule({
             )}
           </div>
           
-          <div className="card">
-            <h3 className="section-header" style={{ marginBottom: '12px' }}>Day Summary</h3>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px' }}>
-                <span style={{ color: 'var(--text-secondary)' }}>Total slots today:</span>
-                <span style={{ fontWeight: 600 }}>{slots.filter(s => !s.isBreak).length} periods</span>
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px' }}>
-                <span style={{ color: 'var(--text-secondary)' }}>Classes scheduled:</span>
-                <span style={{ fontWeight: 600 }}>
-                  {Object.entries(daySchedule).filter(([slotId, subId]) => subId && slots.find(s => s.id === slotId && !s.isBreak)).length} classes
-                </span>
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px' }}>
-                <span style={{ color: 'var(--text-secondary)' }}>Marked present:</span>
-                <span style={{ color: 'var(--color-success)', fontWeight: 700 }}>
-                  {Object.values(todayLogs).filter(x => x === 'present').length}
-                </span>
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px' }}>
-                <span style={{ color: 'var(--text-secondary)' }}>Marked missed:</span>
-                <span style={{ color: 'var(--color-danger)', fontWeight: 700 }}>
-                  {Object.values(todayLogs).filter(x => x === 'absent').length}
-                </span>
+          {!isWeekend && !isHoliday && (
+            <div className="card">
+              <h3 className="section-header" style={{ marginBottom: '12px' }}>Day Summary</h3>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px' }}>
+                  <span style={{ color: 'var(--text-secondary)' }}>Total slots today:</span>
+                  <span style={{ fontWeight: 600 }}>{slots.filter(s => !s.isBreak).length} periods</span>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px' }}>
+                  <span style={{ color: 'var(--text-secondary)' }}>Classes scheduled:</span>
+                  <span style={{ fontWeight: 600 }}>
+                    {Object.entries(daySchedule).filter(([slotId, subId]) => subId && slots.find(s => s.id === slotId && !s.isBreak)).length} classes
+                  </span>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px' }}>
+                  <span style={{ color: 'var(--text-secondary)' }}>Marked present:</span>
+                  <span style={{ color: 'var(--color-success)', fontWeight: 700 }}>
+                    {Object.values(todayLogs).filter(x => x === 'present').length}
+                  </span>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px' }}>
+                  <span style={{ color: 'var(--text-secondary)' }}>Marked missed:</span>
+                  <span style={{ color: 'var(--color-danger)', fontWeight: 700 }}>
+                    {Object.values(todayLogs).filter(x => x === 'absent').length}
+                  </span>
+                </div>
               </div>
             </div>
-          </div>
+          )}
         </div>
       </div>
     </div>
