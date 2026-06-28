@@ -124,7 +124,7 @@ export default function AttendanceCalendar({
                     <span className="day-number">{cell.dayNum}</span>
                     
                     {dayOrderNum && !cell.isEmpty && (
-                      <span style={{ fontSize: '9px', color: 'var(--text-muted)', position: 'absolute', top: '8px', right: '8px' }}>
+                      <span className="day-order-badge">
                         D{dayOrderNum}
                       </span>
                     )}

@@ -1346,6 +1346,46 @@ body {
   }
 }
 
+/* Day Order Badge (Desktop default position) */
+.day-order-badge {
+  font-size: 9px;
+  color: var(--text-muted);
+  position: absolute;
+  top: 8px;
+  right: 8px;
+}
+
+/* Header profile badge - hidden on desktop */
+.dashboard-title-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+}
+
+.header-profile-badge {
+  display: none;
+}
+
+.sidebar-profile-wrapper {
+  display: block;
+}
+
+/* Sidebar scrollbar on desktop */
+.sidebar {
+  overflow-y: auto;
+}
+.sidebar::-webkit-scrollbar {
+  width: 4px;
+}
+.sidebar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.sidebar::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 2px;
+}
+
 @media (max-width: 768px) {
   .app-container {
     flex-direction: column;
@@ -1367,10 +1407,12 @@ body {
     justify-content: space-around;
     background: rgba(8, 9, 12, 0.95);
     z-index: 1000;
+    overflow-y: visible;
   }
 
   .sidebar .brand,
-  .sidebar .sidebar-footer {
+  .sidebar .sidebar-footer,
+  .sidebar-profile-wrapper {
     display: none;
   }
 
@@ -1407,6 +1449,56 @@ body {
     align-items: flex-start;
     gap: 16px;
   }
+  
+  .dashboard-title-row {
+    flex-direction: row;
+    align-items: center;
+    width: 100%;
+    gap: 12px;
+    justify-content: space-between;
+  }
+
+  .header-profile-badge {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 12px;
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+  }
+  
+  .header-profile-badge .avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: var(--grad-primary);
+    color: white;
+    font-weight: 700;
+    font-size: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 0 10px rgba(99, 102, 241, 0.2);
+  }
+  
+  .header-profile-badge .details {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .header-profile-badge .details .name {
+    font-size: 11px;
+    font-weight: 700;
+    color: white;
+  }
+  
+  .header-profile-badge .details .reg {
+    font-size: 9px;
+    color: var(--text-secondary);
+    font-family: monospace;
+  }
 
   .time-widget {
     align-items: flex-start;
@@ -1421,6 +1513,40 @@ body {
 
   .quick-actions {
     grid-template-columns: repeat(2, 1fr);
+  }
+
+  .timetable-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .day-order-badge {
+    display: none; /* Hide order absolute text inside cell on mobile to prevent overlapping */
+  }
+
+  .calendar-days-grid {
+    gap: 4px;
+  }
+  
+  .calendar-day-cell {
+    padding: 4px 2px;
+    min-height: 48px;
+  }
+  
+  .cal-dot {
+    width: 5px;
+    height: 5px;
+  }
+}
+
+@media (max-width: 480px) {
+  .subject-grid {
+    grid-template-columns: 1fr !important;
+  }
+  .btn-dayorder {
+    padding: 8px 2px;
+    font-size: 11px;
   }
 }
 

@@ -18,8 +18,18 @@ export function isTimeInSlot(currentTimeStr, slotStartTime, slotEndTime) {
 // Calculate the Day Order for a target date (1 to 5)
 // Reference Date should be a Monday that is Day 1
 export function getDayOrderForDate(targetDateStr, refDateStr = '2026-06-22', refDayOrder = 1, academicCalendar = null) {
-  if (academicCalendar && academicCalendar[targetDateStr] !== undefined) {
-    return academicCalendar[targetDateStr];
+  if (academicCalendar && Object.keys(academicCalendar).length > 0) {
+    if (academicCalendar[targetDateStr] !== undefined) {
+      return academicCalendar[targetDateStr];
+    }
+    const dates = Object.keys(academicCalendar).sort();
+    if (dates.length > 0) {
+      const minDate = dates[0];
+      const maxDate = dates[dates.length - 1];
+      if (targetDateStr >= minDate && targetDateStr <= maxDate) {
+        return null;
+      }
+    }
   }
   const targetDate = new Date(targetDateStr);
   const refDate = new Date(refDateStr);

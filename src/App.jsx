@@ -370,14 +370,24 @@ export default function App() {
       <main className="main-content">
         {/* Dashboard Header */}
         <header className="dashboard-header">
-          <div className="dashboard-title">
-            <h1 style={{ color: 'white' }}>Presenly Dashboard</h1>
-            <p>
-              {currentTab === 'today' && "Today's classes, live schedules, and quick logs."}
-              {currentTab === 'timetable' && "Overview and schedule assignments."}
-              {currentTab === 'calendar' && "Retroactive logging and calendar overview."}
-              {currentTab === 'subjects' && "Performance metrics and attend/bunk counselor."}
-            </p>
+          <div className="dashboard-title-row">
+            <div className="dashboard-title">
+              <h1 style={{ color: 'white' }}>Presenly Dashboard</h1>
+              <p>
+                {currentTab === 'today' && "Today's classes, live schedules, and quick logs."}
+                {currentTab === 'timetable' && "Overview and schedule assignments."}
+                {currentTab === 'calendar' && "Retroactive logging and calendar overview."}
+                {currentTab === 'subjects' && "Performance metrics and attend/bunk counselor."}
+              </p>
+            </div>
+            
+            <div className="header-profile-badge">
+              <div className="avatar">DS</div>
+              <div className="details">
+                <span className="name">Devakishore S</span>
+                <span className="reg">RA2531243010075</span>
+              </div>
+            </div>
           </div>
 
           <div className="time-widget">

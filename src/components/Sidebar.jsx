@@ -47,7 +47,7 @@ export default function Sidebar({ currentTab, setCurrentTab }) {
         })}
       </ul>
 
-      <div style={{ padding: '0 20px', marginTop: 'auto', marginBottom: '15px' }}>
+      <div className="sidebar-profile-wrapper" style={{ padding: '0 20px', marginTop: 'auto', marginBottom: '15px' }}>
         <div className="profile-badge">
           <div style={{ fontSize: '9px', textTransform: 'uppercase', color: 'var(--text-muted)', fontWeight: 700, letterSpacing: '0.5px', marginBottom: '2px' }}>Student Profile</div>
           <div className="profile-name">Devakishore S</div>
