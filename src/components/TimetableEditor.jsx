@@ -127,61 +127,82 @@ export default function TimetableEditor({
                 No slots configured yet. Click "Edit Timetable" to add class periods.
               </div>
             ) : (
-              slots.map(slot => (
-                <React.Fragment key={slot.id}>
-                  {/* Slot Time Column */}
-                  <div className="grid-cell grid-time-cell">
-                    <span style={{ fontWeight: 600, color: 'white', marginBottom: '2px' }}>{slot.label}</span>
-                    <span style={{ display: 'flex', alignItems: 'center', gap: '3px', color: 'var(--text-muted)' }}>
-                      <Clock size={10} />
-                      {slot.startTime}-{slot.endTime}
-                    </span>
-                  </div>
-
-                  {/* Day Columns */}
-                  {days.map(day => {
-                    const subjectId = timetable[day]?.[slot.id] || '';
-                    const subject = subjects.find(sub => sub.id === subjectId);
-                    const isActive = isSlotActiveNow(slot, day);
-
-                    return (
-                      <div
-                        key={`${day}-${slot.id}`}
-                        className={`grid-cell timetable-cell ${isActive ? 'active-time' : ''}`}
-                        style={{
-                          borderBottom: isActive ? '1px solid var(--color-primary)' : '',
-                          borderRight: isActive ? '1px solid var(--color-primary)' : '',
-                          boxShadow: isActive ? 'inset 0 0 10px rgba(99, 102, 241, 0.05)' : ''
-                        }}
-                      >
-                        {isEditing ? (
-                          <select
-                            className="cell-select"
-                            value={subjectId}
-                            onChange={(e) => handleCellChange(day, slot.id, e.target.value)}
-                          >
-                            <option value="">-- Free --</option>
-                            {subjects.map(sub => (
-                              <option key={sub.id} value={sub.id}>
-                                {sub.name} ({sub.code})
-                              </option>
-                            ))}
-                          </select>
-                        ) : subject ? (
-                          <>
-                            <span className="cell-subject-name">{subject.name}</span>
-                            <span className="cell-subject-code">{subject.code}</span>
-                          </>
-                        ) : (
-                          <span style={{ color: 'var(--text-muted)', fontSize: '11px', fontStyle: 'italic' }}>
-                            Free
-                          </span>
-                        )}
+              slots.map(slot => {
+                if (slot.isBreak) {
+                  return (
+                    <React.Fragment key={slot.id}>
+                      {/* Slot Time Column */}
+                      <div className="grid-cell grid-time-cell" style={{ background: 'rgba(16, 185, 129, 0.04)' }}>
+                        <span style={{ fontWeight: 600, color: 'var(--color-success)', marginBottom: '2px' }}>{slot.label}</span>
+                        <span style={{ display: 'flex', alignItems: 'center', gap: '3px', color: 'rgba(16, 185, 129, 0.6)', fontSize: '10px' }}>
+                          <Clock size={10} />
+                          {slot.startTime}-{slot.endTime}
+                        </span>
                       </div>
-                    );
-                  })}
-                </React.Fragment>
-              ))
+                      {/* Merged Day Columns for BREAK */}
+                      <div className="grid-cell timetable-break-grid-cell" style={{ gridColumn: 'span 5', background: 'rgba(16, 185, 129, 0.06)', color: 'var(--color-success)', fontWeight: 700, letterSpacing: '8px', fontSize: '11px', textTransform: 'uppercase', display: 'flex', justifyContent: 'center', alignItems: 'center', cursor: 'default', borderBottom: '1px solid rgba(16, 185, 129, 0.15)' }}>
+                        BREAK
+                      </div>
+                    </React.Fragment>
+                  );
+                }
+
+                return (
+                  <React.Fragment key={slot.id}>
+                    {/* Slot Time Column */}
+                    <div className="grid-cell grid-time-cell">
+                      <span style={{ fontWeight: 600, color: 'white', marginBottom: '2px' }}>{slot.label}</span>
+                      <span style={{ display: 'flex', alignItems: 'center', gap: '3px', color: 'var(--text-muted)' }}>
+                        <Clock size={10} />
+                        {slot.startTime ? `${slot.startTime}-${slot.endTime}` : 'Online'}
+                      </span>
+                    </div>
+
+                    {/* Day Columns */}
+                    {days.map(day => {
+                      const subjectId = timetable[day]?.[slot.id] || '';
+                      const subject = subjects.find(sub => sub.id === subjectId);
+                      const isActive = isSlotActiveNow(slot, day);
+
+                      return (
+                        <div
+                          key={`${day}-${slot.id}`}
+                          className={`grid-cell timetable-cell ${isActive ? 'active-time' : ''}`}
+                          style={{
+                            borderBottom: isActive ? '1px solid var(--color-primary)' : '',
+                            borderRight: isActive ? '1px solid var(--color-primary)' : '',
+                            boxShadow: isActive ? 'inset 0 0 10px rgba(99, 102, 241, 0.05)' : ''
+                          }}
+                        >
+                          {isEditing ? (
+                            <select
+                              className="cell-select"
+                              value={subjectId}
+                              onChange={(e) => handleCellChange(day, slot.id, e.target.value)}
+                            >
+                              <option value="">-- Free --</option>
+                              {subjects.map(sub => (
+                                <option key={sub.id} value={sub.id}>
+                                  {sub.name} ({sub.code})
+                                </option>
+                              ))}
+                            </select>
+                          ) : subject ? (
+                            <>
+                              <span className="cell-subject-name">{subject.name}</span>
+                              <span className="cell-subject-code">{subject.code}</span>
+                            </>
+                          ) : (
+                            <span style={{ color: 'var(--text-muted)', fontSize: '11px', fontStyle: 'italic' }}>
+                              Free
+                            </span>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </React.Fragment>
+                );
+              })
             )}
           </div>
         </div>

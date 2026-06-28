@@ -19,12 +19,72 @@ export default function SubjectAnalytics({
 
   // Calculate subject stats
   const subjectsStats = getAttendanceStats(subjects, attendanceLog, targetPercent);
+  
+  // Group subjects by their 'group' property for analytics rollup (e.g. Python Theory + Python Lab -> Python)
+  const groupedStats = {};
+  subjects.forEach(sub => {
+    const grpName = sub.group || sub.name;
+    if (!groupedStats[grpName]) {
+      groupedStats[grpName] = {
+        id: sub.id,
+        name: grpName,
+        code: sub.group ? sub.code.split('-')[0] : sub.code,
+        attended: 0,
+        missed: 0,
+        total: 0,
+        percent: 100,
+        canBunk: 0,
+        mustAttend: 0,
+        status: 'green',
+        subSubjects: []
+      };
+    }
+    const stat = subjectsStats[sub.id];
+    if (stat) {
+      groupedStats[grpName].attended += stat.attended;
+      groupedStats[grpName].missed += stat.missed;
+      groupedStats[grpName].total += stat.total;
+      groupedStats[grpName].subSubjects.push(sub.name);
+    }
+  });
+
+  // Recompute grouped stats calculations
+  Object.values(groupedStats).forEach(g => {
+    if (g.total > 0) {
+      g.percent = Math.round((g.attended / g.total) * 1000) / 10;
+    } else {
+      g.percent = 100.0;
+    }
+    
+    const P = g.attended;
+    const T = g.total;
+    const R = targetPercent / 100;
+    
+    if (g.percent >= targetPercent) {
+      const maxBunk = Math.floor(P / R - T);
+      g.canBunk = Math.max(0, maxBunk);
+      g.mustAttend = 0;
+    } else {
+      const reqAttend = Math.ceil((R * T - P) / (1 - R));
+      g.mustAttend = Math.max(0, reqAttend);
+      g.canBunk = 0;
+    }
+    
+    if (g.percent < targetPercent) {
+      g.status = 'red';
+    } else if (g.percent >= targetPercent && g.percent < 80) {
+      g.status = 'yellow';
+    } else {
+      g.status = 'green';
+    }
+  });
+
   const overallStats = getOverallStats(subjectsStats, targetPercent);
 
-  // Group subjects by range
-  const greenSubjects = Object.values(subjectsStats).filter(s => s.status === 'green');
-  const yellowSubjects = Object.values(subjectsStats).filter(s => s.status === 'yellow');
-  const redSubjects = Object.values(subjectsStats).filter(s => s.status === 'red');
+  // Group subjects by range using groupedStats
+  const greenSubjects = Object.values(groupedStats).filter(s => s.status === 'green');
+  const yellowSubjects = Object.values(groupedStats).filter(s => s.status === 'yellow');
+  const redSubjects = Object.values(groupedStats).filter(s => s.status === 'red');
 
   // Radial progress calculations
   const radius = 70;
@@ -203,7 +263,12 @@ export default function SubjectAnalytics({
                   <div className="subject-card-header">
                     <div>
                       <h4 className="subj-info-name">{sub.name}</h4>
-                      <span className="subj-info-code">{sub.code}</span>
+                      <div style={{ display: 'flex', gap: '6px', alignItems: 'center', flexWrap: 'wrap', marginTop: '2px' }}>
+                        <span className="subj-info-code">{sub.code}</span>
+                        {sub.subSubjects && sub.subSubjects.length > 1 && (
+                          <span style={{ fontSize: '9px', background: 'rgba(255,255,255,0.06)', padding: '2px 6px', borderRadius: '4px', color: 'var(--text-secondary)', fontWeight: 500 }}>Theory & Lab combined</span>
+                        )}
+                      </div>
                     </div>
                     <span className="subj-info-pct red">{sub.percent}%</span>
                   </div>
@@ -243,7 +308,12 @@ export default function SubjectAnalytics({
                   <div className="subject-card-header">
                     <div>
                       <h4 className="subj-info-name">{sub.name}</h4>
-                      <span className="subj-info-code">{sub.code}</span>
+                      <div style={{ display: 'flex', gap: '6px', alignItems: 'center', flexWrap: 'wrap', marginTop: '2px' }}>
+                        <span className="subj-info-code">{sub.code}</span>
+                        {sub.subSubjects && sub.subSubjects.length > 1 && (
+                          <span style={{ fontSize: '9px', background: 'rgba(255,255,255,0.06)', padding: '2px 6px', borderRadius: '4px', color: 'var(--text-secondary)', fontWeight: 500 }}>Theory & Lab combined</span>
+                        )}
+                      </div>
                     </div>
                     <span className="subj-info-pct yellow">{sub.percent}%</span>
                   </div>
@@ -283,7 +353,12 @@ export default function SubjectAnalytics({
                   <div className="subject-card-header">
                     <div>
                       <h4 className="subj-info-name">{sub.name}</h4>
-                      <span className="subj-info-code">{sub.code}</span>
+                      <div style={{ display: 'flex', gap: '6px', alignItems: 'center', flexWrap: 'wrap', marginTop: '2px' }}>
+                        <span className="subj-info-code">{sub.code}</span>
+                        {sub.subSubjects && sub.subSubjects.length > 1 && (
+                          <span style={{ fontSize: '9px', background: 'rgba(255,255,255,0.06)', padding: '2px 6px', borderRadius: '4px', color: 'var(--text-secondary)', fontWeight: 500 }}>Theory & Lab combined</span>
+                        )}
+                      </div>
                     </div>
                     <span className="subj-info-pct green">{sub.percent}%</span>
                   </div>

@@ -6,40 +6,70 @@ import AttendanceCalendar from './components/AttendanceCalendar';
 import SubjectAnalytics from './components/SubjectAnalytics';
 import { getDayOrderForDate, formatDateClean, formatDateISO, getAttendanceStats, getOverallStats } from './utils/helpers';
 import { supabase } from './utils/supabase';
+import { defaultAcademicCalendar } from './utils/academicCalendar';
 import './App.css';
 
-// Initial Mock/Default Data
+// Initial default data from your SRM FSH timetable scan
 const defaultSubjects = [
-  { id: 'subj-1', name: 'Computer Networks', code: 'CS301' },
-  { id: 'subj-2', name: 'Database Management Systems', code: 'CS302' },
-  { id: 'subj-3', name: 'Software Engineering', code: 'CS303' },
-  { id: 'subj-4', name: 'Artificial Intelligence', code: 'CS304' },
-  { id: 'subj-5', name: 'Web Development Lab', code: 'CS305' },
+  { id: "python-theory", name: "Python Theory", code: "PYTHON-TH", group: "Python" },
+  { id: "python-lab", name: "Python Lab", code: "PYTHON-LAB", group: "Python" },
+  { id: "dbms-theory", name: "DBMS Theory", code: "DBMS-TH", group: "DBMS" },
+  { id: "dbms-lab", name: "DBMS Lab", code: "DBMS-LAB", group: "DBMS" },
+  { id: "dl-theory", name: "DL Theory", code: "DL-TH", group: "DL Theory" },
+  { id: "mdc", name: "MDC", code: "MDC", group: "MDC" },
+  { id: "minor-elec", name: "Minor Elective", code: "MINOR-ELEC", group: "Minor Elective" }
 ];
 
 const defaultSlots = [
-  { id: 'slot-1', startTime: '09:00', endTime: '10:00', label: 'Period 1' },
-  { id: 'slot-2', startTime: '10:00', endTime: '11:00', label: 'Period 2' },
-  { id: 'slot-3', startTime: '11:00', endTime: '12:00', label: 'Period 3' },
-  { id: 'slot-4', startTime: '13:00', endTime: '14:00', label: 'Period 4' },
-  { id: 'slot-5', startTime: '14:00', endTime: '15:00', label: 'Period 5' },
+  { id: 'slot-1', startTime: '12:35', endTime: '13:25', label: 'Session I' },
+  { id: 'slot-2', startTime: '13:25', endTime: '14:15', label: 'Session II' },
+  { id: 'slot-3', startTime: '14:15', endTime: '15:05', label: 'Session III' },
+  { id: 'break-slot', startTime: '15:05', endTime: '15:20', label: 'BREAK', isBreak: true },
+  { id: 'slot-4', startTime: '15:20', endTime: '16:05', label: 'Session IV' },
+  { id: 'slot-5', startTime: '16:05', endTime: '16:50', label: 'Session V' },
+  { id: 'slot-6', startTime: '', endTime: '', label: 'Online Hour', isOnline: true }
 ];
 
 const defaultTimetable = {
-  1: { 'slot-1': 'subj-1', 'slot-2': 'subj-2', 'slot-3': 'subj-3', 'slot-4': 'subj-4', 'slot-5': 'subj-5' },
-  2: { 'slot-1': 'subj-2', 'slot-2': 'subj-4', 'slot-3': 'subj-1', 'slot-4': 'subj-5', 'slot-5': 'subj-3' },
-  3: { 'slot-1': 'subj-3', 'slot-2': 'subj-5', 'slot-3': 'subj-2', 'slot-4': 'subj-1', 'slot-5': 'subj-4' },
-  4: { 'slot-1': 'subj-4', 'slot-2': 'subj-1', 'slot-3': 'subj-3', 'slot-4': 'subj-2', 'slot-5': 'subj-5' },
-  5: { 'slot-1': 'subj-5', 'slot-2': 'subj-3', 'slot-3': 'subj-4', 'slot-4': 'subj-2', 'slot-5': 'subj-1' },
+  "1": {
+    "slot-1": "python-theory",
+    "slot-2": "dl-theory",
+    "slot-3": "mdc",
+    "slot-4": "dbms-lab"
+  },
+  "2": {
+    "slot-1": "python-lab",
+    "slot-2": "python-theory",
+    "slot-3": "dl-theory",
+    "slot-4": "minor-elec",
+    "slot-5": "minor-elec"
+  },
+  "3": {
+    "slot-1": "dbms-theory",
+    "slot-2": "python-theory",
+    "slot-3": "mdc",
+    "slot-4": "dl-theory",
+    "slot-6": "minor-elec"
+  },
+  "4": {
+    "slot-1": "python-lab",
+    "slot-2": "python-lab",
+    "slot-3": "dbms-theory",
+    "slot-4": "minor-elec",
+    "slot-5": "minor-elec",
+    "slot-6": "mdc"
+  },
+  "5": {
+    "slot-1": "dbms-theory",
+    "slot-2": "dl-theory",
+    "slot-3": "mdc",
+    "slot-4": "dbms-lab",
+    "slot-5": "dbms-lab",
+    "slot-6": "minor-elec"
+  }
 };
 
-const defaultAttendanceLog = {
-  '2026-06-22': { 'slot-1': 'present', 'slot-2': 'present', 'slot-3': 'present', 'slot-4': 'absent', 'slot-5': 'present' },
-  '2026-06-23': { 'slot-1': 'present', 'slot-2': 'present', 'slot-3': 'present', 'slot-4': 'present', 'slot-5': 'present' },
-  '2026-06-24': { 'slot-1': 'absent', 'slot-2': 'present', 'slot-3': 'present', 'slot-4': 'present', 'slot-5': 'absent' },
-  '2026-06-25': { 'slot-1': 'present', 'slot-2': 'present', 'slot-3': 'present', 'slot-4': 'present', 'slot-5': 'present' },
-  '2026-06-26': { 'slot-1': 'present', 'slot-2': 'absent', 'slot-3': 'present', 'slot-4': 'off', 'slot-5': 'present' },
-};
+const defaultAttendanceLog = {};
 
 export default function App() {
   // Navigation
@@ -48,6 +78,7 @@ export default function App() {
   // Syncing state
   const [syncStatus, setSyncStatus] = useState('loading'); // 'loading', 'synced', 'syncing', 'error'
   const [isInitialLoadDone, setIsInitialLoadDone] = useState(false);
+  const [lastCloudUpdate, setLastCloudUpdate] = useState(null);
 
   // Core States (initially fallback to localStorage or default mock data)
   const [subjects, setSubjects] = useState(() => {
@@ -70,9 +101,14 @@ export default function App() {
     return local ? JSON.parse(local) : defaultAttendanceLog;
   });
 
+  const [academicCalendar, setAcademicCalendar] = useState(() => {
+    const local = localStorage.getItem('presenly_academicCalendar');
+    return local ? JSON.parse(local) : defaultAcademicCalendar;
+  });
+
   // Reference Date for Day Order calculations (Monday as Day 1 by default)
   const [referenceDate, setReferenceDate] = useState(() => {
-    return localStorage.getItem('presenly_refDate') || '2026-06-22';
+    return localStorage.getItem('presenly_refDate') || '2026-06-24';
   });
 
   const [referenceDayOrder, setReferenceDayOrder] = useState(() => {
@@ -101,7 +137,7 @@ export default function App() {
       try {
         const { data, error } = await supabase
           .from('attendance_data')
-          .select('payload')
+          .select('payload, updated_at')
           .eq('data_key', 'presenly_data')
           .maybeSingle();
 
@@ -115,6 +151,8 @@ export default function App() {
           if (p.attendanceLog) setAttendanceLog(p.attendanceLog);
           if (p.referenceDate) setReferenceDate(p.referenceDate);
           if (p.referenceDayOrder) setReferenceDayOrder(p.referenceDayOrder);
+          if (p.academicCalendar) setAcademicCalendar(p.academicCalendar);
+          setLastCloudUpdate(data.updated_at);
         } else {
           // No cloud data yet, initialize it with current state
           const initialPayload = {
@@ -124,10 +162,11 @@ export default function App() {
             attendanceLog,
             referenceDate,
             referenceDayOrder,
+            academicCalendar,
           };
           const { error: upsertError } = await supabase
             .from('attendance_data')
-            .upsert({ data_key: 'presenly_data', payload: initialPayload });
+            .upsert({ data_key: 'presenly_data', payload: initialPayload }, { onConflict: 'data_key' });
           
           if (upsertError) throw upsertError;
         }
@@ -164,6 +203,10 @@ export default function App() {
     localStorage.setItem('presenly_refDayOrder', String(referenceDayOrder));
   }, [referenceDate, referenceDayOrder]);
 
+  useEffect(() => {
+    localStorage.setItem('presenly_academicCalendar', JSON.stringify(academicCalendar));
+  }, [academicCalendar]);
+
   // 3. Debounced Supabase Syncing
   useEffect(() => {
     if (!isInitialLoadDone) return;
@@ -179,12 +222,18 @@ export default function App() {
           attendanceLog,
           referenceDate,
           referenceDayOrder,
+          academicCalendar,
         };
-        const { error } = await supabase
+        const { error, data } = await supabase
           .from('attendance_data')
-          .upsert({ data_key: 'presenly_data', payload, updated_at: new Date().toISOString() });
+          .upsert({ data_key: 'presenly_data', payload, updated_at: new Date().toISOString() }, { onConflict: 'data_key' })
+          .select('updated_at')
+          .single();
 
         if (error) throw error;
+        if (data && data.updated_at) {
+          setLastCloudUpdate(data.updated_at);
+        }
         setSyncStatus('synced');
       } catch (err) {
         console.error('Cloud Sync failed:', err);
@@ -193,7 +242,42 @@ export default function App() {
     }, 1500); // 1.5s debounce
 
     return () => clearTimeout(timer);
-  }, [subjects, slots, timetable, attendanceLog, referenceDate, referenceDayOrder, isInitialLoadDone]);
+  }, [subjects, slots, timetable, attendanceLog, referenceDate, referenceDayOrder, academicCalendar, isInitialLoadDone]);
+
+  // 4. Live Real-time 15-second Polling
+  useEffect(() => {
+    if (!isInitialLoadDone || !supabase) return;
+
+    const interval = setInterval(async () => {
+      try {
+        const { data, error } = await supabase
+          .from('attendance_data')
+          .select('payload, updated_at')
+          .eq('data_key', 'presenly_data')
+          .maybeSingle();
+
+        if (error) throw error;
+
+        if (data && data.updated_at && data.updated_at !== lastCloudUpdate) {
+          console.log('Realtime Poll: New cloud data found, updating state.');
+          const p = data.payload;
+          if (p.subjects) setSubjects(p.subjects);
+          if (p.slots) setSlots(p.slots);
+          if (p.timetable) setTimetable(p.timetable);
+          if (p.attendanceLog) setAttendanceLog(p.attendanceLog);
+          if (p.referenceDate) setReferenceDate(p.referenceDate);
+          if (p.referenceDayOrder) setReferenceDayOrder(p.referenceDayOrder);
+          if (p.academicCalendar) setAcademicCalendar(p.academicCalendar);
+          setLastCloudUpdate(data.updated_at);
+          setSyncStatus('synced');
+        }
+      } catch (err) {
+        console.warn('Realtime Poll failed to fetch:', err);
+      }
+    }, 15000); // 15 seconds
+
+    return () => clearInterval(interval);
+  }, [lastCloudUpdate, isInitialLoadDone]);
 
   // 4. Force Reset All Data
   const resetAllData = async () => {
@@ -204,8 +288,9 @@ export default function App() {
       setSlots(defaultSlots);
       setTimetable(defaultTimetable);
       setAttendanceLog({});
-      setReferenceDate('2026-06-22');
+      setReferenceDate('2026-06-24');
       setReferenceDayOrder(1);
+      setAcademicCalendar(defaultAcademicCalendar);
 
       try {
         if (supabase) {
@@ -214,12 +299,13 @@ export default function App() {
             slots: defaultSlots,
             timetable: defaultTimetable,
             attendanceLog: {},
-            referenceDate: '2026-06-22',
+            referenceDate: '2026-06-24',
             referenceDayOrder: 1,
+            academicCalendar: defaultAcademicCalendar,
           };
           const { error } = await supabase
             .from('attendance_data')
-            .upsert({ data_key: 'presenly_data', payload: defaultPayload });
+            .upsert({ data_key: 'presenly_data', payload: defaultPayload }, { onConflict: 'data_key' });
           if (error) throw error;
         }
         setSyncStatus('synced');
@@ -234,12 +320,15 @@ export default function App() {
 
   // Determine current day order
   const todayISO = formatDateISO(currentDate);
-  const currentDayOrder = getDayOrderForDate(todayISO, referenceDate, referenceDayOrder);
+  const currentDayOrder = getDayOrderForDate(todayISO, referenceDate, referenceDayOrder, academicCalendar);
 
   // Set manual day order for today (shifts reference point)
   const setTodayDayOrder = (d) => {
-    setReferenceDate(todayISO);
-    setReferenceDayOrder(d);
+    setAcademicCalendar(prev => {
+      const updated = { ...prev };
+      updated[todayISO] = d;
+      return updated;
+    });
   };
 
   // Mark attendance log entry
@@ -350,6 +439,7 @@ export default function App() {
             timetable={timetable}
             subjects={subjects}
             currentDate={currentDate}
+            academicCalendar={academicCalendar}
           />
         )}
 

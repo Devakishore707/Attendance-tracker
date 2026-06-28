@@ -9,6 +9,7 @@ export default function AttendanceCalendar({
   timetable,
   subjects,
   currentDate,
+  academicCalendar,
 }) {
   const [viewDate, setViewDate] = useState(new Date(currentDate));
   const [selectedDateStr, setSelectedDateStr] = useState(formatDateISO(currentDate));
@@ -54,7 +55,7 @@ export default function AttendanceCalendar({
   const weekdays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
   const selectedDateObj = new Date(selectedDateStr);
-  const selectedDayOrder = getDayOrderForDate(selectedDateStr);
+  const selectedDayOrder = getDayOrderForDate(selectedDateStr, undefined, undefined, academicCalendar);
   const selectedDaySchedule = selectedDayOrder ? timetable[selectedDayOrder] || {} : {};
   const selectedDateLogs = attendanceLog[selectedDateStr] || {};
   const isSelectedWeekend = selectedDateObj.getDay() === 0 || selectedDateObj.getDay() === 6;
@@ -92,7 +93,7 @@ export default function AttendanceCalendar({
                   return <div key={`empty-${idx}`} className="calendar-day-cell empty-day" />;
                 }
 
-                const dayOrderNum = getDayOrderForDate(cell.dateStr);
+                const dayOrderNum = getDayOrderForDate(cell.dateStr, undefined, undefined, academicCalendar);
                 const dayLog = attendanceLog[cell.dateStr] || {};
                 const schedule = dayOrderNum ? timetable[dayOrderNum] || {} : {};
                 const hasTodayBorder = formatDateISO(currentDate) === cell.dateStr;
@@ -102,6 +103,7 @@ export default function AttendanceCalendar({
                 const dots = [];
                 if (dayOrderNum) {
                   slots.forEach(slot => {
+                    if (slot.isBreak) return;
                     const subjectId = schedule[slot.id];
                     if (subjectId) {
                       const status = dayLog[slot.id]; // present, absent, off, undefined
@@ -176,6 +178,7 @@ export default function AttendanceCalendar({
 
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginTop: '4px' }}>
                     {slots.map(slot => {
+                      if (slot.isBreak) return null;
                       const subjectId = selectedDaySchedule[slot.id];
                       const subject = subjects.find(sub => sub.id === subjectId);
                       const currentStatus = selectedDateLogs[slot.id];
@@ -187,7 +190,7 @@ export default function AttendanceCalendar({
                           <div className="panel-row-info">
                             <span className="panel-subj-name">{subject.name}</span>
                             <span className="panel-slot-time">
-                              {slot.startTime} - {slot.endTime} • {slot.label}
+                              {slot.startTime ? `${slot.startTime} - ${slot.endTime} • ` : 'Online Hour • '}{slot.label}
                             </span>
                           </div>
 

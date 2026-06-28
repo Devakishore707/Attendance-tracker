@@ -1487,3 +1487,57 @@ body {
   100% { transform: scale(0.85); opacity: 0.5; }
 }
 
+/* BREAK slots in timeline and timetable */
+.timeline-break-item {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 10px 16px;
+  background: rgba(16, 185, 129, 0.08); /* glowing translucent green */
+  border: 1px dashed rgba(16, 185, 129, 0.3);
+  border-radius: 12px;
+  margin: 6px 0;
+  cursor: default !important;
+}
+
+.timeline-break-item .break-badge {
+  background: var(--color-success);
+  color: #0b0f19;
+  font-size: 10px;
+  font-weight: 800;
+  padding: 2px 8px;
+  border-radius: 4px;
+  letter-spacing: 0.5px;
+}
+
+.timeline-break-item .break-time {
+  color: var(--color-success);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+/* Profile Badge widget in Sidebar/Header */
+.profile-badge {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 10px 14px;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  backdrop-filter: blur(10px);
+}
+
+.profile-badge .profile-name {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.profile-badge .profile-reg {
+  font-size: 10px;
+  color: var(--text-secondary);
+  font-family: monospace;
+}
+
+

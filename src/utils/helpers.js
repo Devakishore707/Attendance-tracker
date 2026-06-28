@@ -8,6 +8,7 @@ export function timeToMinutes(timeStr) {
 
 // Check if a time is within a slot range
 export function isTimeInSlot(currentTimeStr, slotStartTime, slotEndTime) {
+  if (!slotStartTime || !slotEndTime) return false;
   const current = timeToMinutes(currentTimeStr);
   const start = timeToMinutes(slotStartTime);
   const end = timeToMinutes(slotEndTime);
@@ -16,7 +17,10 @@ export function isTimeInSlot(currentTimeStr, slotStartTime, slotEndTime) {
 
 // Calculate the Day Order for a target date (1 to 5)
 // Reference Date should be a Monday that is Day 1
-export function getDayOrderForDate(targetDateStr, refDateStr = '2026-06-22', refDayOrder = 1) {
+export function getDayOrderForDate(targetDateStr, refDateStr = '2026-06-22', refDayOrder = 1, academicCalendar = null) {
+  if (academicCalendar && academicCalendar[targetDateStr] !== undefined) {
+    return academicCalendar[targetDateStr];
+  }
   const targetDate = new Date(targetDateStr);
   const refDate = new Date(refDateStr);
   

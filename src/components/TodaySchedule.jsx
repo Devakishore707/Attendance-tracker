@@ -30,10 +30,13 @@ export default function TodaySchedule({
   const [selectedSlotId, setSelectedSlotId] = useState(null);
 
   useEffect(() => {
-    if (activeSlot) {
+    if (activeSlot && !activeSlot.isBreak) {
       setSelectedSlotId(activeSlot.id);
     } else if (slots.length > 0 && !selectedSlotId) {
-      setSelectedSlotId(slots[0].id);
+      const firstNonBreak = slots.find(s => !s.isBreak);
+      if (firstNonBreak) {
+        setSelectedSlotId(firstNonBreak.id);
+      }
     }
   }, [activeSlot, slots]);
 
@@ -96,7 +99,7 @@ export default function TodaySchedule({
                   <h2 className="class-title">{selectedSubject.name}</h2>
                   <div className="class-time">
                     <Clock size={15} />
-                    <span>{selectedSlot.startTime} - {selectedSlot.endTime} • {selectedSlot.label}</span>
+                    <span>{selectedSlot.startTime ? `${selectedSlot.startTime} - ${selectedSlot.endTime}` : 'Online Hour'} • {selectedSlot.label}</span>
                   </div>
                 </div>
                 {activeSlot?.id === selectedSlot.id && timeLeftStr && (
@@ -160,6 +163,15 @@ export default function TodaySchedule({
               <h3 className="section-header">Today's Timeline</h3>
               <div className="timeline-list">
                 {slots.map((slot) => {
+                  if (slot.isBreak) {
+                    return (
+                      <div key={slot.id} className="timeline-break-item">
+                        <div className="break-badge">BREAK</div>
+                        <div className="break-time">{slot.startTime} - {slot.endTime}</div>
+                      </div>
+                    );
+                  }
+
                   const subjectId = daySchedule[slot.id];
                   const subject = subjects.find(s => s.id === subjectId);
                   const status = todayLogs[slot.id];
@@ -173,7 +185,7 @@ export default function TodaySchedule({
                       onClick={() => setSelectedSlotId(slot.id)}
                     >
                       <div className="timeline-time">
-                        {slot.startTime}
+                        {slot.startTime || 'Online'}
                       </div>
                       
                       <div className={`timeline-indicator ${status || ''} ${isCurrent ? 'active' : ''}`} />
@@ -232,12 +244,12 @@ export default function TodaySchedule({
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px' }}>
                 <span style={{ color: 'var(--text-secondary)' }}>Total slots today:</span>
-                <span style={{ fontWeight: 600 }}>{slots.length} periods</span>
+                <span style={{ fontWeight: 600 }}>{slots.filter(s => !s.isBreak).length} periods</span>
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px' }}>
                 <span style={{ color: 'var(--text-secondary)' }}>Classes scheduled:</span>
                 <span style={{ fontWeight: 600 }}>
-                  {Object.values(daySchedule).filter(Boolean).length} classes
+                  {Object.entries(daySchedule).filter(([slotId, subId]) => subId && slots.find(s => s.id === slotId && !s.isBreak)).length} classes
                 </span>
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px' }}>
